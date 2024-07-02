@@ -1,10 +1,17 @@
 import random
+import argparse
 import math
 import sys
 import traceback
 
+#############################
+# Tables as weighted arrays #
+#############################
+
+# Cost Categories
 COSTCAT = [10,20,50,100,500,1000,5000]
 
+# Manufacturers - [Name, Note] - 1-100
 MANUFACTURER = (
     [["A local Tech","-"]]*10 +
     [["A nomad weaponsmith","-"]]*2 +
@@ -42,6 +49,7 @@ MANUFACTURER = (
     [["UrbanTech","Rarely Excellent Quality"]]*2
 )
 
+# Weapon Types - [Name, Cost category, Skill type index (for price calc)] - 1-60
 WEAPONTYPE = (
     [["Medium Pistol", 2, 1]]*6 +
     [["Heavy Pistol", 3, 1]]*6 +
@@ -57,12 +65,14 @@ WEAPONTYPE = (
     [["Rocket Launcher", 4, 3]]*2
 )
 
+# Qualities - [Name, Cost category change (for price calc)] - 1-6
 QUALITY = (
     [["Poor Quality", -1]]*3 +
     [["Standard Quality", 0]]*2 +
     [["Excellent Quality", 1]]
 )
 
+# Handgun attachments - [Name, Price] - 1-6
 HANDGUN = (
     [["Drum Magazine", 500]] +
     [["Extended Magazine", 100]] +
@@ -72,6 +82,7 @@ HANDGUN = (
     [["Sniping Scope", 100]]
 )
 
+# Shoulder arm attachments - [Name, Price] - 1-60
 SHOULDERARM = (
     [["Bayonet", 100]]*5 +
     [["Airhypo Bayonet", 100]] +
@@ -86,22 +97,25 @@ SHOULDERARM = (
     [["Sniping Scope", 100]]*6
 )
 
+# Heavy weapon attachments - [Name, Price] - 1-60
 HEAVY = (
-    [["Drum Magazine", 500]] +
-    [["Extended Magazine", 100]] +
-    [["Infrared Nightvision Scope", 500]] +
-    [["Silencer (if eligible, otherwise roll again)", 100]] +
-    [["Smartgun Link", 500]] +
-    [["Sniping Scope", 100]]
+    [["Drum Magazine", 500]]*10 +
+    [["Extended Magazine", 100]]*10 +
+    [["Infrared Nightvision Scope", 500]]*10 +
+    [["Silencer (if eligible, otherwise roll again)", 100]]*10 + # To-do change reroll to exception in attachement script
+    [["Smartgun Link", 500]]*10 +
+    [["Sniping Scope", 100]]*10
 )
 
+# Archery weapon attachments - [Name, Price] - 1-60
 ARCHERY = (
-    [["Infrared Nightvision Scope", 500]]*2 +
-    [["Grapple Gun Underbarrel (if eligible, otherwise roll again)", 100]] +
-    [["Smartgun Link", 500]] +
-    [["Sniping Scope", 100]]*2
+    [["Infrared Nightvision Scope", 500]]*20 +
+    [["Grapple Gun Underbarrel (if eligible, otherwise roll again)", 100]]*10 + # To-do change reroll to exception in attachement script
+    [["Smartgun Link", 500]]*10 +
+    [["Sniping Scope", 100]]*20
 )
 
+# Weapon name templates - [Template, Example] - 1-100
 DESC = (
     [["<Letter(s)>-<Number(s)>","CP-2020"]]*9 +
     [["<Descriptor> <Number(s)>","Cyberpunk 2020"]]*6 +
@@ -135,33 +149,89 @@ DESC = (
     [["<Something Geeky>","+1 Very Heavy Pistol of Protection"]]*1
 )
 
-def ATTACHMENT(wt):
+# Randomises attachment based on weapon type
+def ATTACHMENT(wt=["Medium Pistol", 2, 1], choice=None):
     out = ""
     
     match wt[2]:
         case 1:
-            out = random.choice(HANDGUN)
+            if isinstance(choice, int) :
+                out = HANDGUN[choice - 1]
+            else :
+                out = random.choice(HANDGUN)
         case 2:
-            out = random.choice(SHOULDERARM)
+            if isinstance(choice, int) :
+                out = SHOULDERARM[choice - 1]
+            else :
+                out = random.choice(SHOULDERARM)
         case 3:
-            out = random.choice(HEAVY)
+            if isinstance(choice, int) :
+                out = HEAVY[choice - 1]
+            else :
+                out = random.choice(HEAVY)
         case 4:
-            out = random.choice(ARCHERY)
+            if isinstance(choice, int) :
+                out = ARCHERY[choice - 1]
+            else :
+                out = random.choice(ARCHERY)
 
     return out
 
+# Calculates Price
 def PRICE(wt, qua, att=["None",0]):
     return COSTCAT[wt[1]+qua[1]] + att[1]
 
-rolled_man = random.choice(MANUFACTURER)
-rolled_wt  = random.choice(WEAPONTYPE)
-rolled_qua = random.choice(QUALITY)
-rolled_att = ATTACHMENT(rolled_wt)
-rolled_pri = PRICE(rolled_wt, rolled_qua, rolled_att)
-rolled_dsc = random.choice(DESC)
+# Command line args
+parser = argparse.ArgumentParser()
+parser.add_argument('-s', '--speed', action='store_true') # Flag for headless (just output)
+parser.add_argument('-m', '--manufacturer', type=int, choices=range(1,101)) # Option for choosing manufacturer
+parser.add_argument('-t', '--type', type=int, choices=range(1,61)) # Option for choosing type
+parser.add_argument('-q', '--quality', type=int, choices=range(1,61)) # Option for choosing quality
+parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type=int, choices=range(1,61)) # Option for attachment, can take integer for table entry
 
-print(rolled_qua[0] + " " + rolled_wt[0])
-print(rolled_man[0] + " | Note: " + rolled_man[1])
-print(rolled_dsc[0] + " | Example: " + rolled_dsc[1])
-print("Attachment: " + rolled_att[0])
-print("Cost: " + str(rolled_pri) + "eb")
+# Parse arguments into variable
+args = parser.parse_args()
+
+if args.manufacturer :
+    rolled_man = MANUFACTURER[args.manufacturer - 1]
+elif args.speed :
+    rolled_man = random.choice(MANUFACTURER)
+else :
+    rolled_man = random.choice(MANUFACTURER) # Replace with function to choose or roll in TUI
+
+if args.type :
+    rolled_wt = WEAPONTYPE[args.type - 1]
+elif args.speed :
+    rolled_wt = random.choice(WEAPONTYPE)
+else :
+    rolled_wt = random.choice(WEAPONTYPE) # Replace with function to choose or roll in TUI
+
+if args.quality :
+    rolled_qua = QUALITY[args.quality - 1]
+elif args.speed :
+    rolled_qua = random.choice(QUALITY)
+else :
+    rolled_qua = random.choice(QUALITY) # Replace with function to choose or roll in TUI
+
+rolled_att = None
+if args.attachment==0 :
+    rolled_att = ATTACHMENT(rolled_wt, args.attachment)
+    print("Set Attachment")
+elif args.attachment and args.speed :
+    rolled_att = ATTACHMENT(rolled_wt)
+    print("Rolled attachment")
+elif not args.speed :
+    rolled_att = ATTACHMENT(rolled_wt) # Replace with function to choose or roll in TUI
+    print("Other rolled attachment")
+
+print("Manufacturer: " + rolled_man[0])
+print("Weapon type: " + rolled_wt[0])
+print("Quality: " + rolled_qua[0])
+
+if rolled_att :
+    print("Attachment: " + rolled_att[0])
+    rolled_pri = PRICE(rolled_wt, rolled_qua, rolled_att)
+else :
+    rolled_pri = PRICE(rolled_wt, rolled_qua)
+
+print("Cost: " + str(rolled_pri))
