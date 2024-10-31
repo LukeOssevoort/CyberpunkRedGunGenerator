@@ -181,13 +181,60 @@ def ATTACHMENT(wt=["Medium Pistol", 2, 1], choice=None):
 def PRICE(wt, qua, att=["None",0]):
     return COSTCAT[wt[1]+qua[1]] + att[1]
 
-def ROLL(arg, speed, table):
+# Create a table of unique options
+def UNIQUE(table):
+    opt = table[0]
+    start = 1
+    out = []
+    for index in range(len(table)):
+        if table[index] != opt :
+            out.append([opt, start, index])
+            start = index + 1
+            opt = table[index]
+    out.append([opt, start, len(table)])
+    return out
+
+def INTIN(text, min, max):
+    while True :
+        out = input(text + " or leave blank to roll: ")
+        if out == '':
+            out = random.randint(min, max)
+            break
+        else:
+            try:
+                out = int(out)
+                if out < min or out > max:
+                    print("Invalid input. Please input integer between " + min + " and " + max)
+                    continue
+                else :
+                    break
+            except:
+                print("Input not integer")
+                continue
+    return out
+
+def SELECT(table, text):
+    unitab = UNIQUE(table)
+    for item in unitab:
+        print(str(item[1]) + "-" + str(item[2]) + ": " + item[0][0])
+    while True:
+        choice=INTIN(text, 1, len(table))
+        print("You selected: " + table[choice][0])
+        retry=input("Press enter to continue or type to pick again: ")
+        if retry:
+            continue
+        else:
+            break
+    return table[choice]
+
+# Roll basic tables
+def ROLL(arg, speed, table, text):
     if arg :
         return table[arg - 1]
     elif speed :
         return random.choice(table)
     else :
-        return random.choice(table) # Replace with function to choose or roll in TUI
+        return SELECT(table, text) # Replace with function to choose or roll in TUI
 
 # Command line args
 parser = argparse.ArgumentParser()
@@ -200,12 +247,12 @@ parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type
 
 # Parse arguments into variable
 args = parser.parse_args()
-print(args)
+#print(args)
 
-rolled_man = ROLL(args.manufacturer, args.speed, MANUFACTURER)
-rolled_wt  = ROLL(args.type, args.speed, WEAPONTYPE)
-rolled_qua = ROLL(args.quality, args.speed, QUALITY)
-rolled_des = ROLL(args.description, args.speed, DESC)
+rolled_man = ROLL(args.manufacturer, args.speed, MANUFACTURER, "Select a manufacturer")
+rolled_wt  = ROLL(args.type, args.speed, WEAPONTYPE, "Select a weapon type")
+rolled_qua = ROLL(args.quality, args.speed, QUALITY, "Select weapon quality")
+rolled_dsc = ROLL(args.description, args.speed, DESC, "Select a description template")
 
 rolled_att = None
 if args.attachment is not None :
@@ -217,14 +264,17 @@ if args.attachment is not None :
         rolled_att = ATTACHMENT(rolled_wt)
         #print("Rolled")
     elif not args.speed :
-        rolled_att = ATTACHMENT(rolled_wt) # Replace with function to choose or roll in TUI
+        rolled_att = ATTACHMENT(rolled_wt) # Replace with elseif to use TUI with right attachment table
         #print("User select mode")
 #else :
     #print("No Attachment")
 
+#print(UNIQUE(MANUFACTURER))
+
 print("Manufacturer: " + rolled_man[0])
 print("Weapon type: " + rolled_wt[0])
 print("Quality: " + rolled_qua[0])
+print("Description: " + rolled_dsc[0] + " Example: " + rolled_dsc[1])
 
 if rolled_att :
     print("Attachment: " + rolled_att[0])
