@@ -195,6 +195,7 @@ parser.add_argument('-s', '--speed', action='store_true') # Flag for headless (j
 parser.add_argument('-m', '--manufacturer', type=int, choices=range(1,101)) # Option for choosing manufacturer
 parser.add_argument('-t', '--type', type=int, choices=range(1,61)) # Option for choosing type
 parser.add_argument('-q', '--quality', type=int, choices=range(1,61)) # Option for choosing quality
+parser.add_argument('-d', '--description', type=int, choices=range(1,101)) # Option for choosing description
 parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type=int, choices=range(1,61)) # Option for attachment, can take integer for table entry
 
 # Parse arguments into variable
@@ -204,6 +205,7 @@ print(args)
 rolled_man = ROLL(args.manufacturer, args.speed, MANUFACTURER)
 rolled_wt  = ROLL(args.type, args.speed, WEAPONTYPE)
 rolled_qua = ROLL(args.quality, args.speed, QUALITY)
+rolled_des = ROLL(args.description, args.speed, DESC)
 
 rolled_att = None
 if args.attachment is not None :
