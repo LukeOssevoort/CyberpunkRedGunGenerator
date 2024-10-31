@@ -280,10 +280,11 @@ rolled_dsc = ROLL(args.description, args.speed, DESC, "Select a name template")
 print()
 print("===============================")
 
-print("Manufacturer: " + rolled_man[0])
-print("Weapon type: " + rolled_wt[0])
-print("Quality: " + rolled_qua[0])
 print("Name template: " + rolled_dsc[0] + " Example: " + rolled_dsc[1])
+
+print(rolled_qua[0] + " " + rolled_man[0] + " " + rolled_wt[0])
+if rolled_man[1] != '-':
+    print("Manufacturer Note: " + rolled_man[1])
 
 if rolled_att :
     print("Attachment: " + rolled_att[0])
