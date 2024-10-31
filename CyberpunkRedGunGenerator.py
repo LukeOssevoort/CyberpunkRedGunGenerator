@@ -149,32 +149,39 @@ DESC = (
     [["<Something Geeky>","+1 Very Heavy Pistol of Protection"]]*1
 )
 
-# Randomises attachment based on weapon type
-def ATTACHMENT(wt=["Medium Pistol", 2, 1], choice=None):
-    out = ""
-    
-    match wt[2]:
+# Return weapon type table based on weapon type num
+def ATTTABLE (wt_num):
+    match wt_num:
         case 1:
-            if isinstance(choice, int) :
-                out = HANDGUN[choice - 1]
-            else :
-                out = random.choice(HANDGUN)
+            return HANDGUN
         case 2:
-            if isinstance(choice, int) :
-                out = SHOULDERARM[choice - 1]
-            else :
-                out = random.choice(SHOULDERARM)
-        case 3:
-            if isinstance(choice, int) :
-                out = HEAVY[choice - 1]
-            else :
-                out = random.choice(HEAVY)
+            return SHOULDERARM
+        case 3: 
+            return HEAVY
         case 4:
-            if isinstance(choice, int) :
-                out = ARCHERY[choice - 1]
-            else :
-                out = random.choice(ARCHERY)
+            return ARCHERY
 
+# Randomises attachment based on weapon type
+def ATTACHMENT(wt, arg, speed):
+    out = None
+    table = ATTTABLE(wt[2])
+    
+    if arg is not None :
+        #print("Attachment")
+        if arg > 0 :
+            out = table[arg - 1]
+            #print("Set")
+        elif speed :
+            out = random.choice(table)
+            #print("Rolled")
+        elif not speed :
+            out = SELECT(table, "Select an attachment") # Replace with elseif to use TUI with right attachment table
+            #print("User select mode")
+    #else :
+        #print("No Attachment")
+
+    #print(UNIQUE(MANUFACTURER))
+    
     return out
 
 # Calculates Price
@@ -204,12 +211,12 @@ def INTIN(text, min, max):
             try:
                 out = int(out)
                 if out < min or out > max:
-                    print("Invalid input. Please input integer between " + min + " and " + max)
+                    print("ERROR: Invalid input. Please input integer between " + min + " and " + max)
                     continue
                 else :
                     break
             except:
-                print("Input not integer")
+                print("ERROR: Input not integer. Please input integer between " + min + " and " + max)
                 continue
     return out
 
@@ -219,13 +226,13 @@ def SELECT(table, text):
         print(str(item[1]) + "-" + str(item[2]) + ": " + item[0][0])
     while True:
         choice=INTIN(text, 1, len(table))
-        print("You selected: " + table[choice][0])
+        print("You selected: " + table[choice-1][0])
         retry=input("Press enter to continue or type to pick again: ")
         if retry:
             continue
         else:
             break
-    return table[choice]
+    return table[choice-1]
 
 # Roll basic tables
 def ROLL(arg, speed, table, text):
@@ -249,32 +256,33 @@ parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type
 args = parser.parse_args()
 #print(args)
 
+
 rolled_man = ROLL(args.manufacturer, args.speed, MANUFACTURER, "Select a manufacturer")
 rolled_wt  = ROLL(args.type, args.speed, WEAPONTYPE, "Select a weapon type")
 rolled_qua = ROLL(args.quality, args.speed, QUALITY, "Select weapon quality")
-rolled_dsc = ROLL(args.description, args.speed, DESC, "Select a description template")
 
-rolled_att = None
-if args.attachment is not None :
-    #print("Attachment")
-    if args.attachment > 0 :
-        rolled_att = ATTACHMENT(rolled_wt, args.attachment)
-        #print("Set")
-    elif args.speed :
-        rolled_att = ATTACHMENT(rolled_wt)
-        #print("Rolled")
-    elif not args.speed :
-        rolled_att = ATTACHMENT(rolled_wt) # Replace with elseif to use TUI with right attachment table
-        #print("User select mode")
-#else :
-    #print("No Attachment")
+if not args.speed and args.attachment is None:
+    while True:
+        argat = input("Include attachment (y/n (or blank)): ").lower()
+        if argat == 'y' or argat== 'yes' :
+            args.attachment = 0
+            break
+        elif argat == 'n' or argat == 'no' or argat == '' :
+            break
+        else :
+            print("ERROR: Input not 'y' or 'n' or ''")
+            continue
+rolled_att = ATTACHMENT(rolled_wt, args.attachment, args.speed)
 
-#print(UNIQUE(MANUFACTURER))
+rolled_dsc = ROLL(args.description, args.speed, DESC, "Select a name template")
+
+print()
+print("===============================")
 
 print("Manufacturer: " + rolled_man[0])
 print("Weapon type: " + rolled_wt[0])
 print("Quality: " + rolled_qua[0])
-print("Description: " + rolled_dsc[0] + " Example: " + rolled_dsc[1])
+print("Name template: " + rolled_dsc[0] + " Example: " + rolled_dsc[1])
 
 if rolled_att :
     print("Attachment: " + rolled_att[0])
@@ -283,3 +291,6 @@ else :
     rolled_pri = PRICE(rolled_wt, rolled_qua)
 
 print("Cost: " + str(rolled_pri))
+
+print("===============================")
+print()
