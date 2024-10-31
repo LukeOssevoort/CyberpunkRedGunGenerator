@@ -249,8 +249,9 @@ parser.add_argument('-s', '--speed', action='store_true') # Flag for headless (j
 parser.add_argument('-m', '--manufacturer', type=int, choices=range(1,101)) # Option for choosing manufacturer
 parser.add_argument('-t', '--type', type=int, choices=range(1,61)) # Option for choosing type
 parser.add_argument('-q', '--quality', type=int, choices=range(1,61)) # Option for choosing quality
-parser.add_argument('-d', '--description', type=int, choices=range(1,101)) # Option for choosing description
 parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type=int, choices=range(1,61)) # Option for attachment, can take integer for table entry
+parser.add_argument('-d', '--description', type=int, choices=range(1,101)) # Option for choosing description
+
 
 # Parse arguments into variable
 args = parser.parse_args()
