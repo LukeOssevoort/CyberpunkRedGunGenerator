@@ -72,14 +72,14 @@ QUALITY = (
     [["Excellent Quality", 1]]
 )
 
-# Handgun attachments - [Name, Price] - 1-6
+# Handgun attachments - [Name, Price] - 1-60
 HANDGUN = (
-    [["Drum Magazine", 500]] +
-    [["Extended Magazine", 100]] +
-    [["Infrared Nightvision Scope", 500]] +
-    [["Silencer", 100]] +
-    [["Smartgun Link", 500]] +
-    [["Sniping Scope", 100]]
+    [["Drum Magazine", 500]]*10 +
+    [["Extended Magazine", 100]]*10 +
+    [["Infrared Nightvision Scope", 500]]*10 +
+    [["Silencer", 100]]*10 +
+    [["Smartgun Link", 500]]*10 +
+    [["Sniping Scope", 100]]*10
 )
 
 # Shoulder arm attachments - [Name, Price] - 1-60
@@ -191,6 +191,7 @@ parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type
 
 # Parse arguments into variable
 args = parser.parse_args()
+print(args)
 
 if args.manufacturer :
     rolled_man = MANUFACTURER[args.manufacturer - 1]
@@ -214,15 +215,19 @@ else :
     rolled_qua = random.choice(QUALITY) # Replace with function to choose or roll in TUI
 
 rolled_att = None
-if args.attachment==0 :
-    rolled_att = ATTACHMENT(rolled_wt, args.attachment)
-    print("Set Attachment")
-elif args.attachment and args.speed :
-    rolled_att = ATTACHMENT(rolled_wt)
-    print("Rolled attachment")
-elif not args.speed :
-    rolled_att = ATTACHMENT(rolled_wt) # Replace with function to choose or roll in TUI
-    print("Other rolled attachment")
+if args.attachment is not None :
+    #print("Attachment")
+    if args.attachment > 0 :
+        rolled_att = ATTACHMENT(rolled_wt, args.attachment)
+        #print("Set")
+    elif args.speed :
+        rolled_att = ATTACHMENT(rolled_wt)
+        #print("Rolled")
+    elif not args.speed :
+        rolled_att = ATTACHMENT(rolled_wt) # Replace with function to choose or roll in TUI
+        #print("User select mode")
+#else :
+    #print("No Attachment")
 
 print("Manufacturer: " + rolled_man[0])
 print("Weapon type: " + rolled_wt[0])
