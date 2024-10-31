@@ -181,6 +181,14 @@ def ATTACHMENT(wt=["Medium Pistol", 2, 1], choice=None):
 def PRICE(wt, qua, att=["None",0]):
     return COSTCAT[wt[1]+qua[1]] + att[1]
 
+def ROLL(arg, speed, table):
+    if arg :
+        return table[arg - 1]
+    elif speed :
+        return random.choice(table)
+    else :
+        return random.choice(table) # Replace with function to choose or roll in TUI
+
 # Command line args
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--speed', action='store_true') # Flag for headless (just output)
@@ -193,26 +201,9 @@ parser.add_argument('-a', '--attachment', nargs='?', default=None, const=0, type
 args = parser.parse_args()
 print(args)
 
-if args.manufacturer :
-    rolled_man = MANUFACTURER[args.manufacturer - 1]
-elif args.speed :
-    rolled_man = random.choice(MANUFACTURER)
-else :
-    rolled_man = random.choice(MANUFACTURER) # Replace with function to choose or roll in TUI
-
-if args.type :
-    rolled_wt = WEAPONTYPE[args.type - 1]
-elif args.speed :
-    rolled_wt = random.choice(WEAPONTYPE)
-else :
-    rolled_wt = random.choice(WEAPONTYPE) # Replace with function to choose or roll in TUI
-
-if args.quality :
-    rolled_qua = QUALITY[args.quality - 1]
-elif args.speed :
-    rolled_qua = random.choice(QUALITY)
-else :
-    rolled_qua = random.choice(QUALITY) # Replace with function to choose or roll in TUI
+rolled_man = ROLL(args.manufacturer, args.speed, MANUFACTURER)
+rolled_wt  = ROLL(args.type, args.speed, WEAPONTYPE)
+rolled_qua = ROLL(args.quality, args.speed, QUALITY)
 
 rolled_att = None
 if args.attachment is not None :
